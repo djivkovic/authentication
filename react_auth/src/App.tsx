@@ -1,24 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Login from './pages/Login';
+import Nav from './components/Nav';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import Register from './pages/Register';
 
 function App() {
+  const [name, setName] = useState("");
+  const [user_type, setUserType] = useState("");
+
+ 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+       <BrowserRouter>
+          <Nav name={name} setName={setName} setUserType={setUserType}/>
+        <main className='form-signin'>
+        <Routes>
+          <Route path='/' element={<Home name={name} user_type={user_type}/>}/>
+          <Route path='/login' element={<Login name={name} setName={setName}/>}/>
+          <Route path='/register' element={<Register />}/>
+        </Routes>
+        </main>
+      </BrowserRouter>
     </div>
   );
 }
