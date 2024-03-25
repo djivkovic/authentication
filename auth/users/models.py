@@ -1,3 +1,52 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
-# Create your models here.
+class UserManager(BaseUserManager):
+    def create_user(self, email, name, password=None, user_type=None):
+        if not email:
+            raise ValueError('Email address is required')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name, user_type=user_type)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, name, password):
+        user = self.create_user(email=email, name=name, password=password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+class User(AbstractBaseUser, PermissionsMixin): 
+    DOCTOR = 'Doctor'
+    SURGEON = 'Surgeon'
+    CLEANING_LADY = 'Cleaning Lady'
+    NURSE = 'Nurse'
+    UNAUTHENTICATED = 'UNA'
+    
+    USER_TYPE_CHOICES = [
+        (DOCTOR, 'Doctor'),
+        (SURGEON, 'Surgeon'),
+        (CLEANING_LADY, 'Cleaning Lady'),
+        (NURSE, 'Nurse'),
+        (UNAUTHENTICATED, 'Unauthenticated'),
+    ]
+
+    name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default=UNAUTHENTICATED)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.email
+
+    def has_module_perms(self, app_label):  
+        return self.is_staff
