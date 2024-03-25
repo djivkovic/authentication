@@ -20,18 +20,19 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser, PermissionsMixin): 
-    DOCTOR = 'Doctor'
-    SURGEON = 'Surgeon'
-    CLEANING_LADY = 'Cleaning Lady'
-    NURSE = 'Nurse'
+    GUIDE = 'Guide'
+    TOURIST = 'Tourist'
+    ADMINISTRATOR = 'Administrator'
+    ACCOUNTANT = 'Accountant'
+    MODERATOR = 'Moderator'
     UNAUTHENTICATED = 'UNA'
     
     USER_TYPE_CHOICES = [
-        (DOCTOR, 'Doctor'),
-        (SURGEON, 'Surgeon'),
-        (CLEANING_LADY, 'Cleaning Lady'),
-        (NURSE, 'Nurse'),
-        (UNAUTHENTICATED, 'Unauthenticated'),
+        (GUIDE, 'Guide'),
+        (TOURIST, 'Tourist'),
+        (ADMINISTRATOR, 'Administrator'),
+        (ACCOUNTANT, 'Accountant'),
+        (MODERATOR, 'Moderator'),
     ]
 
     name = models.CharField(max_length=255)

@@ -32,10 +32,11 @@ const Register = () => {
        setUserType(e.target.value);
       }} required>
                 <option value="">Select user type</option>
-                <option value="Doctor">Doctor</option>
-                <option value="Surgeon">Surgeon</option>
-                <option value="Cleaning Lady">Cleaning Lady</option>
-                <option value="Nurse">Nurse</option>
+                <option value="Guide">Guide</option>
+                <option value="Tourist">Tourist</option>
+                <option value="Administrator">Administrator</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Moderator">Moderator</option>
             </select>
       <button className="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
      </form>);
