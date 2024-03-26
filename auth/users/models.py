@@ -61,3 +61,15 @@ class GuideProfile(models.Model):
 class TouristProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tourist_profile')
     turista = models.CharField(max_length=100)  
+    
+class AdministratorProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='administrator_profile')
+    administrator = models.CharField(max_length=100)  
+    
+class AccountantProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='accountant_profile')
+    accountant = models.CharField(max_length=100)  
+    
+class ModeratorProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='moderator_profile')
+    moderator = models.CharField(max_length=100)  

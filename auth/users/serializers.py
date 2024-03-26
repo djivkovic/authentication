@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, GuideProfile, TouristProfile
+from .models import User, GuideProfile, TouristProfile, AdministratorProfile, AccountantProfile, ModeratorProfile
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,5 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
             TouristProfile.objects.create(user=instance)
         elif user_type == User.GUIDE:
             GuideProfile.objects.create(user=instance)
+        elif user_type == User.ADMINISTRATOR:
+            AdministratorProfile.objects.create(user=instance)
+        elif user_type == User.ACCOUNTANT:
+            AccountantProfile.objects.create(user=instance)
+        elif user_type == User.MODERATOR:
+            ModeratorProfile.objects.create(user=instance)
 
         return instance
