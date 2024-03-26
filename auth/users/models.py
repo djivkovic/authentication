@@ -38,7 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default=UNAUTHENTICATED)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
@@ -51,3 +51,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):  
         return self.is_staff
+
+
+class GuideProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='guide_profile')
+    bio = models.TextField()
+    ture = models.CharField(max_length=100)  
+
+class TouristProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tourist_profile')
+    turista = models.CharField(max_length=100)  

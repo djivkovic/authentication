@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, GuideProfile, TouristProfile
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,8 +12,16 @@ class UserSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         password = validated_data.pop('password', None)
+        user_type = validated_data.get('user_type')
         instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
         instance.save()
+
+        # Create profile based on user type
+        if user_type == User.TOURIST:
+            TouristProfile.objects.create(user=instance)
+        elif user_type == User.GUIDE:
+            GuideProfile.objects.create(user=instance)
+
         return instance
