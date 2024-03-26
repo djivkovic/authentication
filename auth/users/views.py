@@ -10,6 +10,8 @@ from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeErr
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import token_generator 
+from validate_email import validate_email
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import jwt, datetime
 import threading
 
@@ -142,4 +144,79 @@ class VerificationView(APIView):
             pass
 
         return Response({"message":"Error!!!"})
+    
+    
+    
+class RequestPasswordResetEmail(APIView):
+    def get(self, request):
+        return Response({"message":"get_request_password_reset_email"})
+    
+    def post(self, request):
+        context={
+            'values':request.POST
+        }
+        
+        email = request.POST['email']
+        
+        if not validate_email(email):
+            return Response({"message":"Email is not valid!"})
+        
+        user = User.objects.filter(email=email).first()
+        
+        if not user:
+            return Response({"message":"Email is not valid!"})
+            
+        
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+                
+        domain = get_current_site(request).domain
+        link = reverse('reset-user-password', kwargs={'uidb64':uidb64, 'token':PasswordResetTokenGenerator().make_token(user)}) 
+        activate_url='http://'+domain+link
+        
+        email_body = 'Hello, use this link to reset your password.\n'+ activate_url
+        email_subject='Password reset email'
+        email = EmailMessage(
+            email_subject,
+            email_body,
+            "djox17@gmail.com",
+            [email],
+        )
+        # email.send(fail_silently=False)
+        EmailThread(email).start()
+        return Response({"message":"Reset link successfully sent"})
+    
+    
+
+class CompletePasswordReset(View):
+    def get(self, request, uidb64, token):
+        
+        context = {
+            'uidb64':uidb64,
+            'token':token
+        }
+        
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))   
+            user=User.objects.get(pk=user_id)
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                return Response({"message":"Password link is invalid!"})
+        except Exception as identifier:
+            pass
+            
+            return Response({"message":"get_reset_password_page"})
+    def post(self,request, uidb64, token):
+        context = {
+        'uidb64':uidb64,
+        'token':token
+        }
+        
+        password = request.POST['password']
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))   
+            user=User.objects.get(pk=user_id)
+            user.set_password(password)
+            user.save()
+            return Response({"message":"Password successfully reseted"})
+        except Exception as identifier:
+            return Response({"message":"Something went wrong!"})
 
