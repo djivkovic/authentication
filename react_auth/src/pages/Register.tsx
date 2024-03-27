@@ -11,7 +11,7 @@ const Register = () => {
 
     const submit = async (e: SyntheticEvent)=>{
         e.preventDefault();
-
+    
         const response = await fetch("http://localhost:8000/api/register",{
             method:"POST",
             headers:{'Content-Type':'application/json'},
@@ -22,6 +22,7 @@ const Register = () => {
 
         navigate("/login")
     }
+
 
     return (  <form onSubmit={submit}>
       <h1 className="h3 mb-3 font-weight-normal">Please register</h1>

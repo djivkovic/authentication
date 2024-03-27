@@ -149,14 +149,11 @@ class VerificationView(APIView):
     
 class RequestPasswordResetEmail(APIView):
     def get(self, request):
-        return Response({"message":"get_request_password_reset_email"})
+        pass
     
     def post(self, request):
-        context={
-            'values':request.POST
-        }
         
-        email = request.POST['email']
+        email = request.data.get('resetEmail')
         
         if not validate_email(email):
             return Response({"message":"Email is not valid!"})
@@ -169,9 +166,15 @@ class RequestPasswordResetEmail(APIView):
         
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                 
+        token = PasswordResetTokenGenerator().make_token(user)
         domain = get_current_site(request).domain
-        link = reverse('reset-user-password', kwargs={'uidb64':uidb64, 'token':PasswordResetTokenGenerator().make_token(user)}) 
+        link = reverse('reset-user-password', kwargs={'uidb64':uidb64, 'token':token}) 
         activate_url='http://'+domain+link
+        
+        response = Response()
+        resetPasswordInformaton = {'token':token, 'uidb64':uidb64,'link_opened': False}
+        
+        response.data = resetPasswordInformaton
         
         email_body = 'Hello, use this link to reset your password.\n'+ activate_url
         email_subject='Password reset email'
@@ -183,40 +186,37 @@ class RequestPasswordResetEmail(APIView):
         )
         # email.send(fail_silently=False)
         EmailThread(email).start()
-        return Response({"message":"Reset link successfully sent"})
+        print("RESPONSEEE: ", response.data)
+        return response
     
     
 
 class CompletePasswordReset(APIView):
     def get(self, request, uidb64, token):
-        
-        context = {
-            'uidb64':uidb64,
-            'token':token
-        }
-        
         try:
-            user_id = force_str(urlsafe_base64_decode(uidb64))   
-            user=User.objects.get(pk=user_id)
-            if not PasswordResetTokenGenerator().check_token(user, token):
-                return Response({"message":"Password link is invalid!"})
-        except Exception as identifier:
-            pass
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=user_id)
+            if PasswordResetTokenGenerator().check_token(user, token):
+                response = Response()
+                response.set_cookie(key='email-link', value=True)
+                return response
+            else:
+                return Response({"message": "Invalid token."}, status=400)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"message": "Invalid user ID."}, status=400)
             
-            return Response({"message":"get_reset_password_page"})
     def post(self,request, uidb64, token):
-        context = {
-        'uidb64':uidb64,
-        'token':token
-        }
+        newPassword = request.data.get('newPassword')
+        confirmNewPassword =  request.data.get("confirmNewPassword")
+
+        if not (newPassword == confirmNewPassword):
+            return Response({'message':'password must match!'})
         
-        password = request.POST['password']
         try:
             user_id = force_str(urlsafe_base64_decode(uidb64))   
             user=User.objects.get(pk=user_id)
-            user.set_password(password)
+            user.set_password(newPassword)
             user.save()
             return Response({"message":"Password successfully reseted"})
         except Exception as identifier:
             return Response({"message":"Something went wrong!"})
-
