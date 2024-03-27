@@ -187,7 +187,7 @@ class RequestPasswordResetEmail(APIView):
     
     
 
-class CompletePasswordReset(View):
+class CompletePasswordReset(APIView):
     def get(self, request, uidb64, token):
         
         context = {

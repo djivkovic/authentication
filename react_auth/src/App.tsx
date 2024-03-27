@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
+import  {  useState } from 'react';
 import './App.css';
 import Login from './pages/Login';
 import Nav from './components/Nav';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Register from './pages/Register';
+import CompleteResetPassword from './pages/CompleteResetPassword';
+
 
 function App() {
   const [name, setName] = useState("");
@@ -21,6 +22,7 @@ function App() {
           <Route path='/' element={<Home name={name} user_type={user_type}/>}/>
           <Route path='/login' element={<Login name={name} setName={setName}/>}/>
           <Route path='/register' element={<Register />}/>
+          <Route path='/complete-reset-password' element={<CompleteResetPassword />}/>
         </Routes>
         </main>
       </BrowserRouter>
