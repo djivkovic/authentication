@@ -24,7 +24,7 @@ const Register = () => {
     }
 
 
-    return (  <form onSubmit={submit}>
+    return ( <div className="form-f"><form onSubmit={submit}>
       <h1 className="h3 mb-3 font-weight-normal">Please register</h1>
       <input type="text" className="form-control" placeholder="Name" name="name" required onChange={e => setName(e.target.value)}></input>
       <input type="email" className="form-control" placeholder="Email address" name="email" required onChange={e => setEmail(e.target.value)}></input>
@@ -40,7 +40,7 @@ const Register = () => {
                 <option value="Moderator">Moderator</option>
             </select>
       <button className="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
-     </form>);
+     </form></div>);
 }
  
 export default Register;

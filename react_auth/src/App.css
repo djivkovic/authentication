@@ -102,3 +102,34 @@ button:hover {
   font-size: 20px;
   cursor: pointer;
 }
+
+
+.form-f {
+  border: 1px solid black;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+/* Home Page */
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+  border: 1px solid black;
+  height: 400px;
+}
+
+.editProfile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 130px;
+  height: 6vh;
+  margin-top: 80px;
+  margin-left: 20px;
+}
+
+.navbar-brand{
+  margin-left: 20px;
+}
