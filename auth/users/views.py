@@ -222,3 +222,15 @@ class CompletePasswordReset(APIView):
             return Response({"message":"Password successfully reseted"})
         except Exception as identifier:
             return Response({"message":"Something went wrong!"})
+        
+        
+class EditProfile(APIView):
+    def post(self, request, uidb64):
+        try:
+            user_id = force_bytes(urlsafe_base64_decode(uidb64))
+            user=User.objects.get(pk=user_id)
+            user.name=request.data['name']
+            user.save()
+            return Response({"message":"successfull edited profile"})
+        except Exception as identifier:
+            return Response({"message":'Something went wrong with editing profile'})

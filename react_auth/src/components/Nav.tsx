@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-const Nav = (props: { name: string; setName: (name: string) => void , setUserType:(userType:string)=>void}) => {
+const Nav = (props: { name: string; setName: (name: string) => void , setUserType:(userType:string)=>void, email: string; setEmail : (name:string)=>void}) => {
     const navigate = useNavigate();
 
     const logout = async () => {
@@ -31,6 +31,7 @@ const Nav = (props: { name: string; setName: (name: string) => void , setUserTyp
                     console.log('content', content);
                     props.setUserType(content.user_type);
                     props.setName(content.name);
+                    props.setEmail(content.email)
                 }
             )();
         }

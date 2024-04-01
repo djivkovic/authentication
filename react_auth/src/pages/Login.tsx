@@ -15,6 +15,15 @@ const Login = (props: {name: string, setName: (name:string)=>void}) => {
     const [uidb64, setUidb64] = useState("");
     const navigate = useNavigate();
 
+
+    useEffect(() => {
+            if (props.name) {
+                navigate('/');
+            }
+
+    }, [props.name, navigate]);
+
+
    const openModal = () => {
         setShowModal(true);
     }
@@ -97,10 +106,10 @@ const resetPassword = async (e:SyntheticEvent)=>{
 
 
 
-    return ( <><div className="form-f"><form onSubmit={submit}>
+    return ( <><div className="form-f form"><form onSubmit={submit}>
       <h1 className="h3 mb-3 font-weight-normal">Please sign in</h1>
       <input type="email" name="email" className="form-control" placeholder="Email address" onChange={e => setEmail(e.target.value)} required></input>
-      <input type="password" name="password" className="form-control" placeholder="Password" onChange={e => setPassword(e.target.value)} required/>
+      <input type="password" name="password" className="form-control password-input" placeholder="Password" onChange={e => setPassword(e.target.value)} required/>
       <button className="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
      </form> 
      <button className="forgot-password" onClick={openModal}>Forgot password?</button>

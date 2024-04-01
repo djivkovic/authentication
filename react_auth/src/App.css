@@ -108,6 +108,8 @@ button:hover {
   border: 1px solid black;
   border-radius: 20px;
   padding: 20px;
+  justify-content: center;
+  align-items: center; 
 }
 
 /* Home Page */
@@ -124,12 +126,41 @@ button:hover {
   position: absolute;
   top: 0;
   left: 0;
-  width: 130px;
+  width: 120px;
   height: 6vh;
   margin-top: 80px;
   margin-left: 20px;
+  border-radius: 5px;
+  text-align: center;
+  align-content: center;
+  text-decoration: none;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background-color 0.5s;
+  background-color: #007bff;
+}
+
+.editProfile:hover{
+  background-color: #0056b3;
 }
 
 .navbar-brand{
   margin-left: 20px;
+}
+
+.edit-btn{
+  margin-top: 30px;
+}
+
+.email-input{
+  margin-top: 12px;
+}
+
+.edit-title{
+  text-align: center;
+}
+
+.password-input{
+  margin-top: 12px;
 }
