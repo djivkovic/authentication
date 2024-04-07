@@ -188,7 +188,7 @@ class RequestPasswordResetEmail(APIView):
         )
         # email.send(fail_silently=False)
         EmailThread(email).start()
-        print("RESPONSEEE: ", response.data)
+        print("response: ", response.data)
         return response
     
     
