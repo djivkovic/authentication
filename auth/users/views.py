@@ -10,7 +10,7 @@ from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeErr
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import token_generator 
-from validate_email import validate_email
+from django.core.validators import EmailValidator
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import jwt, datetime
 import threading
@@ -26,7 +26,14 @@ class EmailThread(threading.Thread):
         
     def run(self):
         self.email.send(fail_silently=True)  
-        
+       
+class GetAllUsers(APIView):
+    def get(self, request):
+        users = User.objects.all()
+        for user in users:
+        # Ispisivanje email adrese i user_type polja
+            print(f"Email: {user.email}, User Type: {user.user_type}, is_active {user.is_active}, is_superuser {user.is_superuser} ")
+        return Response({"message":"users"})
 
 class RegisterView(APIView):
     def post(self, request):
@@ -65,6 +72,9 @@ class LoginView(APIView):
         password = request.data['password']
         
         user = User.objects.filter(email=email).first()
+        
+        if not user:
+            return Response({"message":"User not found"})
         
         if not user.is_active:
             raise AuthenticationFailed("Account not activated!")
@@ -157,7 +167,8 @@ class RequestPasswordResetEmail(APIView):
         
         email = request.data.get('resetEmail')
         
-        if not validate_email(email):
+        email_validator = EmailValidator()
+        if not email_validator(email):
             return Response({"message":"Email is not valid!"})
         
         user = User.objects.filter(email=email).first()
