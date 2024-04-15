@@ -164,3 +164,8 @@ button:hover {
 .password-input{
   margin-top: 12px;
 }
+
+.accounting-ms {
+  text-decoration: none;
+  font-size: 23px;
+}
