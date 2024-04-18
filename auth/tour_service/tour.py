@@ -3,7 +3,71 @@ import psycopg2
 from auth import authenticate_user
 from db_specs import db_config
 
-# Function to handle posting new blog posts
+# Function to handle getting all tours along with their tags
+def get_all_tours(request):
+    try:
+        conn = psycopg2.connect(**db_config)
+        cursor = conn.cursor()
+        
+        # Fetch all tours along with their tags
+        cursor.execute("""
+            SELECT tours.*, array_agg(tags.name) AS tags
+            FROM tours
+            LEFT JOIN tags ON tours.id = tags.tour_id
+            GROUP BY tours.id
+        """)
+        
+        # Convert the result to a dictionary for better readability
+        tours_with_tags = []
+        for row in cursor.fetchall():
+            tour = {
+                'id': row[0],
+                'title': row[1],
+                'description': row[2],
+                'duration': row[3],
+                'difficulty': row[4],
+                'price': row[5],
+                'status': row[6],
+                'guide_id': row[7],
+                'tags': row[8] if row[8] is not None else []  # Convert NULL to empty list
+            }
+            tours_with_tags.append(tour)
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'tours': tours_with_tags}), 200
+    except Exception as e:
+        # Return an error message if something goes wrong
+        return jsonify({'message': 'Error retrieving tours', 'error': str(e)}), 500
+
+
+def insert_tags_for_tour(tour_id, tags):
+    try:
+        # Connect to the database
+        conn = psycopg2.connect(**db_config)
+        cursor = conn.cursor()
+        
+        # Insert each tag for the given tour ID
+        for tag in tags:
+            cursor.execute("INSERT INTO tags (name, tour_id) VALUES (%s, %s)",
+                           (tag, tour_id))
+        
+        # Commit the changes and close the cursor and connection
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'message': 'Tags inserted successfully'}), 200
+    except Exception as e:
+        # Rollback the transaction in case of an error
+        conn.rollback()
+        
+        # Return an error message
+        return jsonify({'message': 'Error inserting tags', 'error': str(e)}), 500
+
+
+# Function to handle creating new tours
 def create_tour(request):    
 
     token = request.cookies.get('token')
@@ -23,7 +87,7 @@ def create_tour(request):
     description = request.json.get('description')
     duration = request.json.get('duration')
     difficulty = request.json.get('difficulty')
-    tags = request.json.get('tags', [])
+    tags = request.json.get('tags')
     price = request.json.get('price')
     status = request.json.get('status', 'draft')  # default to 'draft' if not provided
 
@@ -36,11 +100,19 @@ def create_tour(request):
     try:
         conn = psycopg2.connect(**db_config)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tour (user_id, title, description, duration, difficulty, tags, price, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
-                       (user_id, title, description, duration, difficulty, tags, price, status))
+        cursor.execute("INSERT INTO tours (title, description, duration, difficulty, price, status, guide_id) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                       (title, description, duration, difficulty, price, status, user_id))
+        
+        # Fetch the newly inserted tour ID
+        tour_id = cursor.fetchone()[0]
+
         conn.commit()
         cursor.close()
         conn.close()
+
+        # Insert tags for the newly created tour
+        insert_tags_for_tour(tour_id, tags)
+
         return jsonify({'message': 'Tour created successfully'}), 201
     except Exception as e:
         return jsonify({'message': 'Error creating tour', 'error': str(e)}), 500
@@ -88,7 +160,7 @@ def add_checkpoint(request):
     try:
         conn = psycopg2.connect(**db_config)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO checkpoints (tour_id, user_id, coordinates) VALUES (%s, %s, %s)", 
+        cursor.execute("INSERT INTO checkpoints (tour_id, user_id, coordinates, name) VALUES (%s, %s, %s, %s)", 
                        (tour_id, user_id, coordinates_set))
         conn.commit()
         cursor.close()
@@ -96,6 +168,7 @@ def add_checkpoint(request):
         return jsonify({'message': 'Checkpoint added successfully'}), 201
     except Exception as e:
         return jsonify({'message': 'Error adding checkpoint', 'error': str(e)}), 500
+
 
 
 # TODO: Function to handle editing tours
