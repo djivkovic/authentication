@@ -38,6 +38,8 @@ const Register = () => {
                 <option value="Administrator">Administrator</option>
                 <option value="Accountant">Accountant</option>
                 <option value="Moderator">Moderator</option>
+                <option value="Hotelijer">Hotelijer</option>
+
             </select>
       <button className="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
      </form></div>);

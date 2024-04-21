@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, email, name, password=None, user_type=None):
@@ -26,6 +27,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     ADMINISTRATOR = 'Administrator'
     ACCOUNTANT = 'Accountant'
     MODERATOR = 'Moderator'
+    HOTELIJER = 'Hotelijer'
     UNAUTHENTICATED = 'UNA'
     
     USER_TYPE_CHOICES = [
@@ -34,6 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         (ADMINISTRATOR, 'Administrator'),
         (ACCOUNTANT, 'Accountant'),
         (MODERATOR, 'Moderator'),
+        (HOTELIJER, 'Hotelijer'),
     ]
 
     name = models.CharField(max_length=255)
@@ -54,6 +57,26 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_staff
 
 
+
+
+class Room(models.Model):
+    id = models.AutoField(primary_key=True)
+    room_number = models.DecimalField(max_digits=10, decimal_places=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    is_booked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Soba {self.room_number} - Cena: {self.price} - Zauzeta: {self.is_booked}"
+
+class Reservation(models.Model):
+    id = models.AutoField(primary_key=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    date_booked = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Rezervacija sobe {self.room.room_number} - Datum rezervacije: {self.date_booked}"
+    
 class GuideProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='guide_profile')
     bio = models.TextField()
@@ -74,3 +97,12 @@ class AccountantProfile(models.Model):
 class ModeratorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='moderator_profile')
     moderator = models.CharField(max_length=100)  
+    
+class HotelijerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='hotelijer_profile')
+    hotelijer = models.CharField(max_length=100)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return f"Profil hotela '{self.hotelijer}, Balance: {self.balance} , Room: {self.room}'"
