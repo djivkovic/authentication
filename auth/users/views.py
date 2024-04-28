@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .serializers import UserSerializer
+from .serializers import UserSerializer, ContractSerializer
 from rest_framework.response import Response
-from .models import User
+from .models import User, Contract
 from django.core.mail import EmailMessage
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -12,12 +12,12 @@ from django.urls import reverse
 from .utils import token_generator 
 from django.core.validators import EmailValidator
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework import status
 import jwt, datetime
 import threading
 
 
 # Create your views here.
-
 
 class EmailThread(threading.Thread):
     def __init__(self, email):
@@ -31,7 +31,6 @@ class GetAllUsers(APIView):
     def get(self, request):
         users = User.objects.all()
         for user in users:
-        # Ispisivanje email adrese i user_type polja
             print(f"Email: {user.email}, User Type: {user.user_type}, is_active {user.is_active}, is_superuser {user.is_superuser} ")
         return Response({"message":"users"})
 
@@ -60,11 +59,7 @@ class RegisterView(APIView):
         )
         EmailThread(email).start()
 
-        return Response(serializer.data)
-
-       
-    
-    
+        return Response(serializer.data)  
 
 class LoginView(APIView):
     def post(self, request):
@@ -123,8 +118,6 @@ class UserView(APIView):
         
         return Response(serializer.data)
     
-    
-
 class LogoutView(APIView):
     def post(self, request):
         response = Response()
@@ -133,7 +126,6 @@ class LogoutView(APIView):
             'message':'successfully logged out'
         }
         return response
-        
         
 class VerificationView(APIView):
     def get(self, request, uidb64, token):
@@ -151,13 +143,10 @@ class VerificationView(APIView):
 
             return Response({"message":"Successfully activated account"})
 
-
         except Exception as ex:
             pass
 
         return Response({"message":"Error!!!"})
-    
-    
     
 class RequestPasswordResetEmail(APIView):
     def get(self, request):
@@ -175,7 +164,6 @@ class RequestPasswordResetEmail(APIView):
         
         if not user:
             return Response({"message":"Email is not valid!"})
-            
         
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                 
@@ -201,8 +189,6 @@ class RequestPasswordResetEmail(APIView):
         EmailThread(email).start()
         print("response: ", response.data)
         return response
-    
-    
 
 class CompletePasswordReset(APIView):
     def get(self, request, uidb64, token):
@@ -234,7 +220,6 @@ class CompletePasswordReset(APIView):
         except Exception as identifier:
             return Response({"message":"Something went wrong!"})
         
-        
 class EditProfile(APIView):
     def post(self, request, uidb64):
         try:
@@ -245,3 +230,49 @@ class EditProfile(APIView):
             return Response({"message":"successfull edited profile"})
         except Exception as identifier:
             return Response({"message":'Something went wrong with editing profile'})
+
+class CreateContract(APIView):
+    def post(self, request):
+        print("contract: ", request.data)
+        request.data['status'] = 'pending'
+        
+        serializer = ContractSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        contract = serializer.save()
+        
+        print("contract created", contract)
+        return Response({"message":"Successfully created contract"})
+
+class AcceptContract(APIView):
+    def post(self, request, contract_id):
+        try:
+            contract = Contract.objects.get(pk=contract_id)
+            contract.status = 'accepted'
+            contract.save() 
+
+            return Response({"message": "Successfully accepted contract"})
+            
+        except Contract.DoesNotExist:
+            return Response({"message": "Contract not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+class RejectContract(APIView):
+    def post(self, request, contract_id):
+        try:
+            contract = Contract.objects.get(pk=contract_id)
+            contract.status = 'rejected'
+            contract.save() 
+
+            return Response({"message": "Successfully rejected contract"})
+            
+        except Contract.DoesNotExist:
+            return Response({"message": "Contract not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class  GetAllContracts(APIView):
+    def get(self, request):
+        try:
+            contracts = Contract.objects.all()
+            serializer = ContractSerializer(contracts, many=True)
+            return Response(serializer.data)
+        except:
+            return  Response({"error":"An error occurred while fetch:"})

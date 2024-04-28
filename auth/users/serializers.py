@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, GuideProfile, TouristProfile, AdministratorProfile, AccountantProfile, ModeratorProfile, HotelijerProfile
+from .models import User, GuideProfile, TouristProfile, AdministratorProfile, AccountantProfile, ModeratorProfile, HotelijerProfile, Contract
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,3 +33,18 @@ class UserSerializer(serializers.ModelSerializer):
             HotelijerProfile.objects.create(user=instance)
 
         return instance
+
+# class ContractSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Contract
+#         fields = ['contractId', 'hotelijerId', 'hotelijerName', 'hotelijerMessage', 'withdrawCondition', 'percentage', 'date', 'status']
+#         extra_kwargs = {
+#             'contractId': {'required': True},
+#             'date': {'read_only': True},
+#         }
+
+class ContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = '__all__'
+        read_only_fields = ['contractId']

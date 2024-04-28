@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from enum import Enum
 
 class UserManager(BaseUserManager):
     def create_user(self, email, name, password=None, user_type=None):
@@ -74,6 +75,24 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"Rezervacija sobe {self.room.room_number} - Datum rezervacije: {self.date_booked}"
+    
+class Contract(models.Model):
+    class Status(Enum):
+        PENDING = 'pending'
+        REJECTED = 'rejected'
+        ACCEPTED = 'accepted'
+
+    contractId = models.AutoField(primary_key=True)
+    hotelijerId = models.IntegerField()
+    hotelijerName = models.CharField(max_length=100)
+    hotelijerMessage = models.CharField(max_length=1000)
+    withdrawCondition = models.CharField(max_length=1000)
+    percentage = models.DecimalField(max_digits=3, decimal_places=0)
+    date = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=[(status.value, status.name) for status in Status], default="pending")
+
+    def __str__(self):
+        return f"Contract {self.contractId} - Hotelijer: {self.hotelijerName}, Status: {self.status}"
     
 class GuideProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='guide_profile')
