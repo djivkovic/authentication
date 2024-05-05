@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from .serializers import UserSerializer, ContractSerializer
 from rest_framework.response import Response
-from .models import User, Contract, HotelijerProfile
+from .models import User, Contract, HotelijerProfile, Room, Reservation
 from django.core.mail import EmailMessage
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -13,6 +13,7 @@ from .utils import token_generator
 from django.core.validators import EmailValidator
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework import status
+from django.db import transaction
 import jwt, datetime
 import threading
 
@@ -284,6 +285,10 @@ class GetAllAcceptedContracts(APIView):
             accepted_contracts = Contract.objects.filter(status='accepted')
             serializer = ContractSerializer(accepted_contracts, many=True)
             data = serializer.data
+            
+            users = User.objects.all()
+            for user in users:
+                print(f"Email: {user.email}, User Type: {user.user_type}, is_active {user.is_active}, is_superuser {user.is_superuser}, id: {user.pk} ")
 
             hotelijer_ids = [contract['hotelijerId'] for contract in data]
 
@@ -305,4 +310,69 @@ class GetAllAcceptedContracts(APIView):
             return Response(results)
         except Exception as e:
             return Response({"error": f"An error occurred while fetching accepted contracts: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class MakeReservation(APIView):
+    def post(self, request):
+        try:
+            room_id = request.data['room_id']
+            room = Room.objects.get(id=room_id)
 
+            user = User.objects.get(email=room.hotelijer)
+            
+            hotelijer_profile = HotelijerProfile.objects.get(user=user)
+            
+            if room.is_booked:
+                return Response({"error": "Room is already booked"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            with transaction.atomic():
+                reservation = Reservation(room=room)
+                reservation.save()
+
+                room.is_booked = True
+                room.save()
+
+                hotelijer_profile.balance += room.price
+                hotelijer_profile.save()
+
+                return Response({"message": "Reservation created successfully"}, status=status.HTTP_201_CREATED)
+        except Room.DoesNotExist:
+            return Response({"error": "Room does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "Hotelijer user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except HotelijerProfile.DoesNotExist:
+            return Response({"error": "Hotelijer profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"An error occurred while making reservation: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class CancelReservation(APIView):
+    def post(self, request):
+        try:
+            room_id = request.data['room_id']
+            room = Room.objects.get(id=room_id)
+            
+            user = User.objects.get(email=room.hotelijer)
+
+            hotelijer_profile = HotelijerProfile.objects.get(user=user)
+
+            amount = room.price
+
+            if room.is_booked:
+                with transaction.atomic():
+                    hotelijer_profile.balance -= amount
+                    hotelijer_profile.save()
+
+                    room.is_booked = False
+                    room.save()
+
+                return Response({"message": "Reservation successfully canceled"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Room is not booked!"}, status=status.HTTP_400_BAD_REQUEST)
+        except Room.DoesNotExist:
+            return Response({"error": "Room does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "Hotelijer user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except HotelijerProfile.DoesNotExist:
+            return Response({"error": "Hotelijer profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"An error occurred! {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

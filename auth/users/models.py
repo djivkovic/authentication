@@ -65,7 +65,7 @@ class Room(models.Model):
     hotelijer = models.ForeignKey(User, on_delete=models.CASCADE, null=True) 
 
     def __str__(self):
-        return f"Soba {self.room_number} - Cena: {self.price} - Zauzeta: {self.is_booked}"
+        return f"Soba {self.room_number} - Cena: {self.price} - Zauzeta: {self.is_booked} {self.hotelijer}"
 
 class Reservation(models.Model):
     id = models.AutoField(primary_key=True)
