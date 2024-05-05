@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from .serializers import UserSerializer, ContractSerializer
 from rest_framework.response import Response
-from .models import User, Contract
+from .models import User, Contract, HotelijerProfile
 from django.core.mail import EmailMessage
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -276,3 +276,33 @@ class  GetAllContracts(APIView):
             return Response(serializer.data)
         except:
             return  Response({"error":"An error occurred while fetch:"})
+        
+
+class GetAllAcceptedContracts(APIView):
+    def get(self, request):
+        try:
+            accepted_contracts = Contract.objects.filter(status='accepted')
+            serializer = ContractSerializer(accepted_contracts, many=True)
+            data = serializer.data
+
+            hotelijer_ids = [contract['hotelijerId'] for contract in data]
+
+            hotelijer_profiles = HotelijerProfile.objects.filter(user_id__in=hotelijer_ids)
+
+            results = [
+                {
+                    'id': profile.user_id,
+                    'name': profile.user.name,
+                    'email': profile.user.email,
+                    'balance': profile.balance,
+                    'contract_id': contract['contractId']
+                }
+                for profile in hotelijer_profiles
+                for contract in data
+                if profile.user_id == contract['hotelijerId']
+            ]
+
+            return Response(results)
+        except Exception as e:
+            return Response({"error": f"An error occurred while fetching accepted contracts: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
