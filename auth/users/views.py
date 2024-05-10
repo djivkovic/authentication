@@ -250,6 +250,18 @@ class AcceptContract(APIView):
             contract = Contract.objects.get(pk=contract_id)
             contract.status = 'accepted'
             contract.save() 
+            
+            user = User.objects.get(pk=contract.hotelijerId)
+            
+            email_body = 'Hello ' + user.name +' , your contract has been accepted.\n'
+            email_subject='Contract Status'
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                "djox17@gmail.com",
+                [user.email],
+            )
+            EmailThread(email).start()
 
             return Response({"message": "Successfully accepted contract"})
             
@@ -263,7 +275,19 @@ class RejectContract(APIView):
             contract = Contract.objects.get(pk=contract_id)
             contract.status = 'rejected'
             contract.save() 
-
+            
+            user = User.objects.get(pk=contract.hotelijerId)
+            
+            email_body = 'Hello ' + user.name +' , your contract has been rejected!\n'
+            email_subject='Contract Status'
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                "djox17@gmail.com",
+                [user.email],
+            )
+            EmailThread(email).start()
+            
             return Response({"message": "Successfully rejected contract"})
             
         except Contract.DoesNotExist:
