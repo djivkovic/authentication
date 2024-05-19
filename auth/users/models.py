@@ -120,6 +120,7 @@ class HotelijerProfile(models.Model):
     hotelijer = models.CharField(max_length=100, null=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     rooms = models.ManyToManyField(Room, related_name='hotelijeri', null=True)
+    percentage = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Profil hotela '{self.hotelijer}, Balance: {self.balance} , Rooms: {self.rooms.all()}'"
+        return f"Profil hotela '{self.hotelijer}', Balance: {self.balance}, Rooms: {self.rooms.all()}, Percentage: {self.percentage}%"

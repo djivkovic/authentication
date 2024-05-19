@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, UserView, LogoutView, VerificationView, RequestPasswordResetEmail, CompletePasswordReset, EditProfile, GetAllUsers, CreateContract, AcceptContract, RejectContract, GetAllContracts, GetAllAcceptedContracts, MakeReservation, CancelReservation
+from .views import RegisterView, LoginView, UserView, LogoutView, VerificationView, RequestPasswordResetEmail, CompletePasswordReset, EditProfile, GetAllUsers, CreateContract, AcceptContract, RejectContract, GetAllContracts, GetAllAcceptedContracts, MakeReservation, CancelReservation, UpdatePercentage
 
 urlpatterns = [
     path('register', RegisterView.as_view()),
@@ -17,6 +17,6 @@ urlpatterns = [
     path('get-all-contracts', GetAllContracts.as_view(), name='get-all-contracts'),
     path('get-accepted-contracts', GetAllAcceptedContracts.as_view(), name='get-accepted-contracts-view'),
     path('make-reservation', MakeReservation.as_view(), name='make-reservation-view'),
-    path('cancel-reservation', CancelReservation.as_view(), name='cancel-reservation-view')
-    
+    path('cancel-reservation', CancelReservation.as_view(), name='cancel-reservation-view'),
+    path('update-percentage/<int:user_id>/', UpdatePercentage.as_view(), name='update-percentage'),
 ]

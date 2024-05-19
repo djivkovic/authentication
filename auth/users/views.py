@@ -324,6 +324,7 @@ class GetAllAcceptedContracts(APIView):
                     'name': profile.user.name,
                     'email': profile.user.email,
                     'balance': profile.balance,
+                    'percentage': profile.percentage,
                     'contract_id': contract['contractId']
                 }
                 for profile in hotelijer_profiles
@@ -400,3 +401,32 @@ class CancelReservation(APIView):
             return Response({"error": "Hotelijer profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": f"An error occurred! {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UpdatePercentage(APIView):
+    def post(self, request, user_id):
+        try:
+            new_percentage = request.data.get('percentage')
+            if new_percentage is None:
+                return Response({"error": "Percentage is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            profile = HotelijerProfile.objects.get(user_id=user_id)
+            profile.percentage = new_percentage
+            profile.save()
+            
+            user = User.objects.get(pk=user_id)
+            
+            email_body = 'Hello ' + user.name +' , your percentage has been updated to ' + new_percentage + '!\n'
+            email_subject='Percentage Update'
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                "djox17@gmail.com",
+                [user.email],
+            )
+            EmailThread(email).start()
+
+            return Response({"message": "Percentage updated successfully."}, status=status.HTTP_200_OK)
+        except HotelijerProfile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
