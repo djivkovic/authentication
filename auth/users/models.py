@@ -124,3 +124,20 @@ class HotelijerProfile(models.Model):
 
     def __str__(self):
         return f"Profil hotela '{self.hotelijer}', Balance: {self.balance}, Rooms: {self.rooms.all()}, Percentage: {self.percentage}%"
+
+class Transaction(models.Model):
+    id = models.AutoField(primary_key=True)
+    amount = models.IntegerField()
+    userId = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    hotelijer_profile = models.ForeignKey(HotelijerProfile, on_delete=models.CASCADE, related_name='transactions', null=True, blank=True)
+
+    def __str__(self):
+        return f"Transaction {self.id} - Amount: {self.amount}, User ID: {self.userId}, Created At: {self.created_at}"
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.hotelijer_profile:
+            self.hotelijer_profile.balance += self.amount
+            self.hotelijer_profile.save()
+
+        super(Transaction, self).save(*args, **kwargs)

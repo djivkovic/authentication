@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, GuideProfile, TouristProfile, AccountantProfile, AdministratorProfile, ModeratorProfile, HotelijerProfile, Reservation,Room, Contract
+from .models import User, GuideProfile, TouristProfile, AccountantProfile, AdministratorProfile, ModeratorProfile, HotelijerProfile, Reservation,Room, Contract, Transaction
 # Register your models here.
 
 admin.site.register(User)
@@ -12,6 +12,7 @@ admin.site.register(HotelijerProfile)
 admin.site.register(Reservation)
 admin.site.register(Room)
 admin.site.register(Contract)
+admin.site.register(Transaction)
 
 
 

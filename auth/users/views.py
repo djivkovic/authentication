@@ -14,6 +14,7 @@ from django.core.validators import EmailValidator
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework import status
 from django.db import transaction
+from django.db.models import Sum
 import jwt, datetime
 import threading
 
@@ -32,7 +33,7 @@ class GetAllUsers(APIView):
     def get(self, request):
         users = User.objects.all()
         for user in users:
-            print(f"Email: {user.email}, User Type: {user.user_type}, is_active {user.is_active}, is_superuser {user.is_superuser} ")
+            print(f"Email: {user.email}, User Type: {user.user_type}, is_active {user.is_active}, is_superuser {user.is_superuser}, user id: {user.pk} ")
         return Response({"message":"users"})
 
 class RegisterView(APIView):
@@ -430,3 +431,53 @@ class UpdatePercentage(APIView):
             return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class HighestTotalAmountAPIView(APIView):
+
+    def get(self, request):
+        hotelijer_totals = HotelijerProfile.objects.annotate(total_amount=Sum('transactions__amount'))
+        
+        highest_total_hotelijer = hotelijer_totals.order_by('-total_amount').first()
+        
+        if highest_total_hotelijer and highest_total_hotelijer.user:
+            response_data = {
+                'userId': highest_total_hotelijer.user.id,
+                'total_amount': highest_total_hotelijer.total_amount
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'No hotelier profiles found or no transactions available.'}, status=status.HTTP_404_NOT_FOUND)
+        
+class TakePercentageFromHotelijer(APIView):
+    def get(self, request):
+        try:
+            accepted_contracts = Contract.objects.filter(status='accepted')
+            serializer = ContractSerializer(accepted_contracts, many=True)
+            data = serializer.data
+
+            hotelijer_ids = [contract['hotelijerId'] for contract in data]
+
+            hotelijer_profiles = HotelijerProfile.objects.filter(user_id__in=hotelijer_ids)
+
+            results = []
+            for profile in hotelijer_profiles:
+                contract = next((contract for contract in data if contract['hotelijerId'] == profile.user_id), None)
+                
+                if contract:
+                    new_balance = profile.balance - (profile.balance * profile.percentage / 100)
+                    
+                    profile.balance = new_balance
+                    profile.save()
+                    
+                    results.append({
+                        'id': profile.user_id,
+                        'name': profile.user.name,
+                        'email': profile.user.email,
+                        'balance': profile.balance,
+                        'percentage': profile.percentage,
+                        'contract_id': contract['contractId']
+                    })
+
+            return Response(results)
+        except Exception as e:
+            return Response({"error": f"An error occurred while fetching accepted contracts: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, UserView, LogoutView, VerificationView, RequestPasswordResetEmail, CompletePasswordReset, EditProfile, GetAllUsers, CreateContract, AcceptContract, RejectContract, GetAllContracts, GetAllAcceptedContracts, MakeReservation, CancelReservation, UpdatePercentage
+from .views import RegisterView, LoginView, UserView, LogoutView, VerificationView, RequestPasswordResetEmail, CompletePasswordReset, EditProfile, GetAllUsers, CreateContract, AcceptContract, RejectContract, GetAllContracts, GetAllAcceptedContracts, MakeReservation, CancelReservation, UpdatePercentage, HighestTotalAmountAPIView, TakePercentageFromHotelijer
 
 urlpatterns = [
     path('register', RegisterView.as_view()),
@@ -19,4 +19,6 @@ urlpatterns = [
     path('make-reservation', MakeReservation.as_view(), name='make-reservation-view'),
     path('cancel-reservation', CancelReservation.as_view(), name='cancel-reservation-view'),
     path('update-percentage/<int:user_id>/', UpdatePercentage.as_view(), name='update-percentage'),
+    path('highest-total-amount/', HighestTotalAmountAPIView.as_view(), name='highest-total-amount'),
+    path('take-percentage-from-hotelijer/', TakePercentageFromHotelijer.as_view(), name='take-percentage-from-hotelijer')
 ]
